@@ -1,108 +1,176 @@
-# 🚀 3MTT AI/ML Final Project — Fraud Detection API with Streaming (Colab Simulation)
+# 🛡️ 3MTT Fraud Detection AI/ML Project
 
-> ✅ Author: **Abdulrahman Adisa Amuda**  
-> 🏁 Program: **3MTT Nigeria — AI/ML Track**  
-> 🗓️ Module 7 Mini Project  
-> 📄 Submission: `Abdulrahman_Adisa_Amuda__module_7_mini_project.ipynb`
+This mini-project simulates a real-world fraud detection system using a trained logistic regression model. The system is deployed via a FastAPI REST API, containerized using Docker, and demonstrates simulated real-time data streaming to emulate message queue behavior (like Kafka).
 
 ---
 
-## 📌 Project Description
+## 📌 Project Overview
 
-This project simulates deploying a **fraud detection machine learning model** as a **REST API** using FastAPI and simulates **real-time predictions using Kafka-style streaming** — all within **Google Colab**, in compliance with storage and environment limitations.
-
-The system predicts whether a transaction is **fraudulent** or **legit** based on sample financial data. It includes:
-
-- Logistic Regression classifier  
-- Input validation  
-- Joblib-based model persistence  
-- A simulation of real-time streaming via Python loop  
-- Full step-by-step workflow aligned with the project requirements  
+- ✅ **Model**: Logistic Regression for binary classification (Fraudulent or Legit)  
+- ⚙️ **API**: FastAPI-based prediction endpoint  
+- 📦 **Containerization**: Docker-ready with simple build/run  
+- 🔄 **Streaming**: Simulated real-time streaming using Python queue  
+- 📁 **Platform**: Built and tested in Google Colab  
 
 ---
 
-## 📂 Project Structure
+## 🧠 Model Training
 
+The model was trained on a synthetic dataset of transactions with features:
+
+- `age`
+- `salary`
+- `transaction_amount`
+
+It was scaled using `StandardScaler`, trained using `LogisticRegression`, and both artifacts (`fraud_model.pkl` and `scaler.pkl`) were saved for deployment.
+
+---
+
+## 🚀 FastAPI Endpoint
+
+The API receives POST requests with transaction data and responds with a fraud prediction.
+
+### 🧪 Sample Input
+```json
+{
+  "age": 45,
+  "salary": 50000,
+  "transaction_amount": 3000
+}
 ```
-3mtt-fraud-api/
-├── Abdulrahman_Adisa_Amuda__module_7_mini_project.ipynb
-├── fraud_model.pkl
-├── scaler.pkl
-└── README.md
-```
 
----
-
-## ✅ Completed Tasks
-
-### 🧠 Model Development
-- [x] Generated a sample dataset mimicking credit card transactions  
-- [x] Preprocessed and scaled the features  
-- [x] Trained a Logistic Regression model  
-- [x] Saved the model and scaler with `joblib`  
-
-### 🔧 API Simulation
-- [x] Defined a `predict_transaction()` function simulating a FastAPI endpoint  
-- [x] Tested the function with a sample transaction  
-
-### 📡 Real-Time Streaming Simulation
-- [x] Created a loop to simulate Kafka-style transaction streaming  
-- [x] Performed live prediction on each transaction  
-- [x] Delayed each prediction with `time.sleep()` to mimic streaming  
-
----
-
-## 📊 Sample Output
-
-```text
-✅ Model and Scaler saved.
-🧪 Test Prediction: Fraudulent
-
-🚦 Real-time transaction stream:
-➡️ {'age': 45, 'salary': 50000, 'transaction_amount': 3000} → 🧠 Prediction: Fraudulent
-➡️ {'age': 28, 'salary': 25000, 'transaction_amount': 1200} → 🧠 Prediction: Legit
-➡️ {'age': 52, 'salary': 70000, 'transaction_amount': 5000} → 🧠 Prediction: Fraudulent
-
-✅ Streaming simulation complete.
+### ✅ Sample Response
+```json
+{
+  "prediction": "Fraudulent"
+}
 ```
 
 ---
 
-## 🛠️ Tools & Technologies Used
+## 🐳 Docker Containerization
 
-| Tool        | Purpose                             |
-|-------------|-------------------------------------|
-| Python      | Core programming language           |
-| Scikit-learn| Model training (Logistic Regression)|
-| Pandas      | Data manipulation                   |
-| Joblib      | Saving model and scaler             |
-| Google Colab| Notebook simulation environment     |
+To make the FastAPI app portable and deployment-ready, we containerized it using Docker.
+
+### 📄 Dockerfile
+```Dockerfile
+FROM python:3.9-slim
+
+WORKDIR /app
+
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+COPY fraud_api.py .
+COPY fraud_model.pkl .
+COPY scaler.pkl .
+
+EXPOSE 8000
+
+CMD ["uvicorn", "fraud_api:app", "--host", "0.0.0.0", "--port", "8000"]
+```
+
+### 📁 Project Structure
+```
+project/
+│
+├── fraud_api.py               # FastAPI prediction API  
+├── fraud_model.pkl            # Trained logistic regression model  
+├── scaler.pkl                 # Feature scaler  
+├── requirements.txt           # App dependencies  
+└── Dockerfile                 # Docker build instructions  
+```
 
 ---
 
-## 🧾 How to Run the Notebook
+## 🔄 Real-Time Streaming Simulation
 
-1. Open [Google Colab](https://colab.research.google.com)  
-2. Upload the notebook file: `Abdulrahman_Adisa_Amuda__module_7_mini_project.ipynb`  
-3. Run cells sequentially  
-4. View outputs inline  
+We simulated Kafka-like streaming using a Python loop and queue.
+
+```python
+import time, pandas as pd, joblib
+
+model = joblib.load("fraud_model.pkl")
+scaler = joblib.load("scaler.pkl")
+
+transaction_stream = [
+    {"age": 25, "salary": 30000, "transaction_amount": 800},
+    {"age": 45, "salary": 50000, "transaction_amount": 3000},
+    {"age": 38, "salary": 45000, "transaction_amount": 1500},
+    {"age": 52, "salary": 70000, "transaction_amount": 5200},
+]
+
+print("🚀 Simulating real-time transaction stream...\n")
+for txn in transaction_stream:
+    input_df = pd.DataFrame([txn])
+    input_scaled = scaler.transform(input_df)
+    prediction = model.predict(input_scaled)[0]
+    result = "Fraudulent" if prediction == 1 else "Legit"
+    print(f"➡️ {txn} → 🧠 Prediction: {result}")
+    time.sleep(0.5)
+
+print("\n✅ Streaming simulation complete.")
+```
 
 ---
 
-## 🏁 Status
+## ⚡ Running with Ngrok (Google Colab)
 
-✅ **100% Complete**  
-📤 **Ready for grading and submission**
+To expose the FastAPI app in Google Colab:
+```python
+!pip install fastapi uvicorn nest-asyncio pyngrok -q
+
+import nest_asyncio
+from pyngrok import ngrok
+import uvicorn
+
+nest_asyncio.apply()
+ngrok.set_auth_token("your_ngrok_token_here")
+public_url = ngrok.connect(8000)
+print(f"🔗 Public FastAPI URL: {public_url}")
+
+uvicorn.run("fraud_api:app", host="0.0.0.0", port=8000)
+```
 
 ---
 
-## ✨ Bonus (Optional)
+## 🛠️ How to Run Locally with Docker
 
-- [ ] Integrate actual Kafka with ngrok tunnels  
-- [ ] Deploy FastAPI to Render/Heroku  
-- [ ] Add authentication to prediction endpoint  
+1. 🔧 Build the image:
+```bash
+docker build -t fraud-api .
+```
+
+2. 🚀 Run the container:
+```bash
+docker run -p 8000:8000 fraud-api
+```
+
+3. 🌐 Access the API:
+```
+http://localhost:8000/docs
+```
 
 ---
 
-> © Abdulrahman Adisa Amuda – 3MTT Final Project — AI/ML Track  
-> _Proudly simulated on Colab due to system storage limitations 🚀_
+## 📬 Author
+
+**Abdulrahman Adisa Amuda**  
+IBM Certified | AI/ML Enthusiast | 3MTT Trainee  
+🔗 [GitHub Profile](https://github.com/adisar6402)
+
+---
+
+## ✅ Status
+
+🎓 Project Complete & Ready for Evaluation  
+📦 Fully Dockerized  
+🧠 Machine Learning Integrated  
+⚙️ FastAPI Operational  
+🔄 Streaming Logic Simulated  
+
+---
+
+## 📢 License
+
+This project is licensed for educational purposes under the MIT License.
